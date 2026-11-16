@@ -1,0 +1,81 @@
+
+frameworks:
+  iso27001:
+    A.5.15: "Access control"
+    A.5.23: "Information security for use of cloud services"
+    A.8.2: "Privileged access rights"
+    A.8.3: "Information access restriction"
+    A.8.5: "Secure authentication"
+    A.8.13: "Information backup"
+    A.8.15: "Logging"
+    A.8.20: "Networks security"
+    A.8.24: "Use of cryptography"
+
+  soc2:
+    CC6.1: "Logical access security"
+    CC6.3: "Access authorization and least privilege"
+    CC6.6: "Protection against external threats"
+    CC7.2: "Monitoring system components for anomalies"
+    A1.2: "Availability: backup and recovery infrastructure"
+
+rules:
+  S3-001:
+    iso27001:
+      - A.8.3
+      - A.5.23
+    soc2:
+      - CC6.1
+      - CC6.6
+    rationale: "Public bucket access can expose protected information and indicates a need to review cloud access restrictions and external access protections."
+
+  S3-002:
+    iso27001:
+      - A.8.24
+    soc2:
+      - CC6.1
+    rationale: "Missing server-side encryption can leave stored information insufficiently protected, making cryptographic safeguards and logical protection relevant."
+
+  S3-003:
+    iso27001:
+      - A.8.13
+    soc2:
+      - A1.2
+    rationale: "Disabled versioning can make recovery from accidental deletion or overwriting harder, although versioning alone is not a complete backup strategy."
+
+  IAM-001:
+    iso27001:
+      - A.5.15
+      - A.8.2
+    soc2:
+      - CC6.1
+      - CC6.3
+    rationale: "Full administrative permissions increase the risk of excessive privileged access and make access authorization and least privilege relevant."
+
+  IAM-002:
+    iso27001:
+      - A.8.5
+      - A.8.2
+    soc2:
+      - CC6.1
+    rationale: "Disabled MFA on the root account weakens authentication protecting highly privileged access to cloud resources."
+
+  NET-001:
+    iso27001:
+      - A.8.20
+    soc2:
+      - CC6.6
+    rationale: "Public SSH exposure creates an externally accessible network entry point that should be protected by network and boundary security measures."
+
+  NET-002:
+    iso27001:
+      - A.8.20
+    soc2:
+      - CC6.6
+    rationale: "Public RDP exposure creates an externally accessible network entry point that should be protected by network and boundary security measures."
+
+  LOG-001:
+    iso27001:
+      - A.8.15
+    soc2:
+      - CC7.2
+    rationale: "Missing or inactive CloudTrail logging reduces visibility into system activity and can make security anomalies harder to identify."

@@ -1,0 +1,183 @@
+{
+  "account_id": "123456789012",
+  "account_summary": {
+    "SummaryMap": {
+      "AccountMFAEnabled": 0
+    }
+  },
+  "s3_buckets": [
+    {
+      "Name": "critical-public-data",
+      "Tags": [{"Key": "criticality", "Value": "critical"}],
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+      },
+      "ServerSideEncryptionConfiguration": null,
+      "Versioning": {"Status": "Suspended"},
+      "Acl": {
+        "Grants": [{
+          "Grantee": {
+            "Type": "Group",
+            "URI": "http://acs.amazonaws.com/groups/global/AllUsers"
+          },
+          "Permission": "READ"
+        }]
+      },
+      "Policy": null
+    },
+    {
+      "Name": "public-reports",
+      "Tags": [{"Key": "criticality", "Value": "low"}],
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+      },
+      "ServerSideEncryptionConfiguration": {
+        "Rules": [{
+          "ApplyServerSideEncryptionByDefault": {
+            "SSEAlgorithm": "AES256"
+          }
+        }]
+      },
+      "Versioning": {"Status": "Enabled"},
+      "Acl": {"Grants": []},
+      "Policy": {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::public-reports/*"
+        }]
+      }
+    },
+    {
+      "Name": "private-archive",
+      "Tags": [{"Key": "criticality", "Value": "high"}],
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+      },
+      "ServerSideEncryptionConfiguration": {
+        "Rules": [{
+          "ApplyServerSideEncryptionByDefault": {
+            "SSEAlgorithm": "AES256"
+          }
+        }]
+      },
+      "Versioning": {"Status": "Enabled"},
+      "Acl": {"Grants": []},
+      "Policy": null
+    },
+    {
+      "Name": "partially-protected-bucket",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": false,
+        "BlockPublicPolicy": false,
+        "RestrictPublicBuckets": false
+      },
+      "ServerSideEncryptionConfiguration": {
+        "Rules": [{
+          "ApplyServerSideEncryptionByDefault": {
+            "SSEAlgorithm": "AES256"
+          }
+        }]
+      },
+      "Versioning": {"Status": "Enabled"},
+      "Acl": {"Grants": []},
+      "Policy": null
+    }
+  ],
+  "iam_policies": [
+    {
+      "PolicyName": "AdministratorAccess",
+      "PolicyId": "AdministratorAccess",
+      "Tags": [{"Key": "criticality", "Value": "critical"}],
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Effect": "Allow",
+          "Action": "*",
+          "Resource": "*"
+        }]
+      }
+    },
+    {
+      "PolicyName": "ReadOnlyReports",
+      "PolicyId": "ReadOnlyReports",
+      "Tags": [{"Key": "criticality", "Value": "low"}],
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Effect": "Allow",
+          "Action": ["s3:GetObject"],
+          "Resource": ["arn:aws:s3:::private-archive/*"]
+        }]
+      }
+    }
+  ],
+  "security_groups": [
+    {
+      "GroupId": "sg-001",
+      "GroupName": "public-ssh",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "IpPermissions": [{
+        "IpProtocol": "tcp",
+        "FromPort": 22,
+        "ToPort": 22,
+        "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
+        "Ipv6Ranges": []
+      }]
+    },
+    {
+      "GroupId": "sg-002",
+      "GroupName": "public-rdp",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "IpPermissions": [{
+        "IpProtocol": "tcp",
+        "FromPort": 3389,
+        "ToPort": 3389,
+        "IpRanges": [],
+        "Ipv6Ranges": [{"CidrIpv6": "::/0"}]
+      }]
+    },
+    {
+      "GroupId": "sg-003",
+      "GroupName": "allowed-all-traffic",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "IpPermissions": [{
+        "IpProtocol": "-1",
+        "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
+        "Ipv6Ranges": []
+      }]
+    },
+    {
+      "GroupId": "sg-004",
+      "GroupName": "secure-https",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "IpPermissions": [{
+        "IpProtocol": "tcp",
+        "FromPort": 443,
+        "ToPort": 443,
+        "IpRanges": [{"CidrIp": "10.0.0.0/8"}],
+        "Ipv6Ranges": []
+      }]
+    }
+  ],
+  "cloud_trails": [
+    {
+      "Name": "main-trail",
+      "IsMultiRegionTrail": true,
+      "TrailStatus": {"IsLogging": false}
+    }
+  ]
+}
