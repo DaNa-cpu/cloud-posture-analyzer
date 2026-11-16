@@ -114,7 +114,7 @@ The analyzer currently includes the following rule categories:
 
 | Rule ID | Category | Security check |
 |---|---|---|
-| S3-001 | S3 | [Insert exact rule title/check] |
+| S3-001 | S3 | Publicly accessible S3 bucket |
 | S3-002 | S3 | S3 bucket encryption disabled |
 | S3-003 | S3 | S3 bucket versioning disabled |
 | IAM-001 | IAM | Excessive administrative permissions |
