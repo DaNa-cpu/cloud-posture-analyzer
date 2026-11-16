@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Posture Analyzer Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 32px;
+            background: #f4f6f8;
+            color: #20242a;
+        }
+
+        h1 { margin-bottom: 8px; }
+
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 130px;
+            box-shadow: 0 1px 4px #0002;
+        }
+
+        .number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        th { background: #e9edf2; }
+
+        .Critical { color: #b00020; font-weight: bold; }
+        .High { color: #d35400; font-weight: bold; }
+        .Medium { color: #9a7400; font-weight: bold; }
+        .Low { color: #287a45; font-weight: bold; }
+
+        .muted { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Cloud Posture Analyzer</h1>
+    <p class="muted">Security scan report</p>
+
+    <section class="cards">
+        <div class="card">
+            <div>Total findings</div>
+            <div class="number">11</div>
+        </div>
+
+        <div class="card">
+            <div>Critical</div>
+            <div class="number">2</div>
+        </div>
+
+        <div class="card">
+            <div>High</div>
+            <div class="number">6</div>
+        </div>
+
+        <div class="card">
+            <div>Medium</div>
+            <div class="number">3</div>
+        </div>
+
+        <div class="card">
+            <div>Low</div>
+            <div class="number">0</div>
+        </div>
+
+        <div class="card">
+            <div>Maximum risk</div>
+            <div class="number">125</div>
+        </div>
+    </section>
+
+    <h2>Findings</h2>
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Risk</th>
+                <th>Rule</th>
+                <th>Resource</th>
+                <th>Evidence</th>
+                <th>Remediation</th>
+                <th>Controls</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td>
+                    <span class="Critical">
+                        Critical
+                    </span>
+                    <br>
+                    125
+                </td>
+                <td>S3-001 - Public S3 Bucket</td>
+                <td>critical-public-data</td>
+                <td>Bucket allows public access.</td>
+                <td>Review the bucket ACL and policy. Remove unintended public access and enable the appropriate S3 Block Public Access settings.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.3, A.5.23
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.1, CC6.6
+                    <br>
+                    Public bucket access can expose protected information and indicates a need to review cloud access restrictions and external access protections.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="Critical">
+                        Critical
+                    </span>
+                    <br>
+                    80
+                </td>
+                <td>IAM-002 - Root Account MFA Disabled</td>
+                <td>123456789012</td>
+                <td>AWS root account does not have MFA enabled.</td>
+                <td>Enable multi-factor authentication for the AWS root user.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.5, A.8.2
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.1
+                    <br>
+                    Disabled MFA on the root account weakens authentication protecting highly privileged access to cloud resources.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    75
+                </td>
+                <td>IAM-001 - IAM Policy Allows Full Administrative Access</td>
+                <td>AdministratorAccess</td>
+                <td>IAM policy allows all actions on all resources.</td>
+                <td>Replace wildcard permissions with specific actions and resources following the principle of least privilege.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.5.15, A.8.2
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.1, CC6.3
+                    <br>
+                    Full administrative permissions increase the risk of excessive privileged access and make access authorization and least privilege relevant.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    75
+                </td>
+                <td>NET-001 - SSH Exposed to the Internet</td>
+                <td>allowed-all-traffic</td>
+                <td>SSH port 22 is exposed to the internet (0.0.0.0/0, protocol: all).</td>
+                <td>Restrict inbound SSH access to trusted IP addresses or use AWS Systems Manager Session Manager.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.20
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.6
+                    <br>
+                    Public SSH exposure creates an externally accessible network entry point that should be protected by network and boundary security measures.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    75
+                </td>
+                <td>NET-001 - SSH Exposed to the Internet</td>
+                <td>public-ssh</td>
+                <td>SSH port 22 is exposed to the internet (0.0.0.0/0, protocol: tcp).</td>
+                <td>Restrict inbound SSH access to trusted IP addresses or use AWS Systems Manager Session Manager.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.20
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.6
+                    <br>
+                    Public SSH exposure creates an externally accessible network entry point that should be protected by network and boundary security measures.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    75
+                </td>
+                <td>NET-002 - RDP Exposed to the Internet</td>
+                <td>allowed-all-traffic</td>
+                <td>RDP port 3389 is exposed to the internet (0.0.0.0/0, protocol: all).</td>
+                <td>Restrict inbound RDP access to trusted IP addresses or use a secure remote access solution.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.20
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.6
+                    <br>
+                    Public RDP exposure creates an externally accessible network entry point that should be protected by network and boundary security measures.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    75
+                </td>
+                <td>NET-002 - RDP Exposed to the Internet</td>
+                <td>public-rdp</td>
+                <td>RDP port 3389 is exposed to the internet (::/0, protocol: tcp).</td>
+                <td>Restrict inbound RDP access to trusted IP addresses or use a secure remote access solution.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.20
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.6
+                    <br>
+                    Public RDP exposure creates an externally accessible network entry point that should be protected by network and boundary security measures.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="High">
+                        High
+                    </span>
+                    <br>
+                    60
+                </td>
+                <td>LOG-001 - CloudTrail Logging Disabled</td>
+                <td>123456789012</td>
+                <td>No CloudTrail trail is currently logging.</td>
+                <td>Create a CloudTrail trail if none exists, enable logging, and deliver logs to a protected S3 bucket.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.15
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC7.2
+                    <br>
+                    Missing or inactive CloudTrail logging reduces visibility into system activity and can make security anomalies harder to identify.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="Medium">
+                        Medium
+                    </span>
+                    <br>
+                    40
+                </td>
+                <td>S3-002 - S3 Bucket Without Encryption</td>
+                <td>critical-public-data</td>
+                <td>Bucket does not have server-side encryption configured.</td>
+                <td>Enable default server-side encryption using SSE-S3 or SSE-KMS.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.24
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.1
+                    <br>
+                    Missing server-side encryption can leave stored information insufficiently protected, making cryptographic safeguards and logical protection relevant.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="Medium">
+                        Medium
+                    </span>
+                    <br>
+                    25
+                </td>
+                <td>S3-001 - Public S3 Bucket</td>
+                <td>public-reports</td>
+                <td>Bucket allows public access.</td>
+                <td>Review the bucket ACL and policy. Remove unintended public access and enable the appropriate S3 Block Public Access settings.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.3, A.5.23
+                    <br>
+                    <strong>SOC 2:</strong>
+                    CC6.1, CC6.6
+                    <br>
+                    Public bucket access can expose protected information and indicates a need to review cloud access restrictions and external access protections.
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <span class="Medium">
+                        Medium
+                    </span>
+                    <br>
+                    15
+                </td>
+                <td>S3-003 - S3 Bucket Versioning Disabled</td>
+                <td>critical-public-data</td>
+                <td>Bucket versioning is not enabled.</td>
+                <td>Enable versioning on the S3 bucket to preserve object versions.</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    A.8.13
+                    <br>
+                    <strong>SOC 2:</strong>
+                    A1.2
+                    <br>
+                    Disabled versioning can make recovery from accidental deletion or overwriting harder, although versioning alone is not a complete backup strategy.
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+    
+</body>
+</html>

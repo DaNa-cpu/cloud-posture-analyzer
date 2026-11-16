@@ -76,9 +76,6 @@ def main():
 
     output_path = args.output
 
-    if args.demo and output_path is None:
-        output_path = PROJECT_ROOT / "reports" / "report.html"
-
     if args.demo:
         input_path = DEMO_FILE
     elif args.input:

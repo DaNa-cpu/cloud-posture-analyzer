@@ -10,10 +10,10 @@
       "Name": "critical-public-data",
       "Tags": [{"Key": "criticality", "Value": "critical"}],
       "PublicAccessBlockConfiguration": {
-        "BlockPublicAcls": true,
-        "IgnorePublicAcls": true,
-        "BlockPublicPolicy": true,
-        "RestrictPublicBuckets": true
+        "BlockPublicAcls": false,
+        "IgnorePublicAcls": false,
+        "BlockPublicPolicy": false,
+        "RestrictPublicBuckets": false
       },
       "ServerSideEncryptionConfiguration": null,
       "Versioning": {"Status": "Suspended"},
@@ -32,10 +32,10 @@
       "Name": "public-reports",
       "Tags": [{"Key": "criticality", "Value": "low"}],
       "PublicAccessBlockConfiguration": {
-        "BlockPublicAcls": true,
-        "IgnorePublicAcls": true,
-        "BlockPublicPolicy": true,
-        "RestrictPublicBuckets": true
+        "BlockPublicAcls": false,
+        "IgnorePublicAcls": false,
+        "BlockPublicPolicy": false,
+        "RestrictPublicBuckets": false
       },
       "ServerSideEncryptionConfiguration": {
         "Rules": [{
@@ -94,6 +94,34 @@
       },
       "Versioning": {"Status": "Enabled"},
       "Acl": {"Grants": []},
+      "Policy": null
+    },
+    {
+      "Name": "acl-public-but-blocked",
+      "Tags": [{"Key": "criticality", "Value": "medium"}],
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+      },
+      "ServerSideEncryptionConfiguration": {
+        "Rules": [{
+          "ApplyServerSideEncryptionByDefault": {
+            "SSEAlgorithm": "AES256"
+          }
+        }]
+      },
+      "Versioning": {"Status": "Enabled"},
+      "Acl": {
+        "Grants": [{
+          "Grantee": {
+            "Type": "Group",
+            "URI": "http://acs.amazonaws.com/groups/global/AllUsers"
+          },
+          "Permission": "READ"
+        }]
+      },
       "Policy": null
     }
   ],

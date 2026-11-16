@@ -1,6 +1,6 @@
 import pytest
 
-from risk import risk_score, risk_label
+from cloud_analyzer.risk import risk_score, risk_label
 
 
 def test_risk_score():

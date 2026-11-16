@@ -1,4 +1,6 @@
+
 import json
+import warnings
 from pathlib import Path
 
 from cloud_analyzer.models import (
@@ -8,9 +10,20 @@ from cloud_analyzer.models import (
     SECURITY_GROUP,
     ACCOUNT,
 )
+KNOWN_KEYS = {
+    "account_id",
+    "account_summary",
+    "s3_buckets",
+    "iam_policies",
+    "security_groups",
+    "cloud_trails",
+}
+
+DEFAULT_CRITICALITY = 3
+
 CRITICALITY_MAP = {
     "low": 1,
-    "medium": 2,
+    "medium": DEFAULT_CRITICALITY,
     "high": 4,
     "critical": 5,
 }
@@ -40,9 +53,48 @@ def _tags(tags):
 
 
 def _criticality(tags):
-    """Convert the criticality tag into a numeric score."""
-    value = str(tags.get("criticality", "medium")).lower()
-    return CRITICALITY_MAP.get(value, 3)
+    """Convert the criticality tag into a numeric score.
+
+    A missing or unrecognized tag gets the default (3), the same value
+    as "medium", so the result does not depend on how the tag is missing.
+    """
+    value = str(tags.get("criticality", "")).lower()
+    return CRITICALITY_MAP.get(value, DEFAULT_CRITICALITY)
+
+
+def _policy_document(value):
+    """Return a policy as a dict.
+
+    The AWS CLI (`aws s3api get-bucket-policy`) returns the policy as a
+    JSON *string*, while other sources give an already-parsed object.
+    """
+    if value is None:
+        return {}
+
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError as error:
+            raise ValueError(f"Policy is not valid JSON: {error}") from error
+
+    if not isinstance(value, dict):
+        raise ValueError("Policy must be a JSON object.")
+
+    return value
+
+
+def _principal_is_public(principal):
+    """True if a policy Principal means 'everyone'.
+
+    Handles "*", {"AWS": "*"} and {"AWS": ["*"]}.
+    """
+    if principal == "*":
+        return True
+
+    if isinstance(principal, dict):
+        return "*" in _as_list(principal.get("AWS"))
+
+    return False
 
 
 def _s3_bucket(bucket):
@@ -72,7 +124,7 @@ def _s3_bucket(bucket):
             break
 
     # 2. Check the bucket policy.
-    policy = bucket.get("Policy") or {}
+    policy = _policy_document(bucket.get("Policy"))
     statements = _as_list(policy.get("Statement"))
 
     public_policy = False
@@ -84,15 +136,7 @@ def _s3_bucket(bucket):
         principal = statement.get("Principal")
         effect = statement.get("Effect")
 
-        principal_is_public = (
-            principal == "*"
-            or (
-                isinstance(principal, dict)
-                and principal.get("AWS") == "*"
-            )
-        )
-
-        if effect == "Allow" and principal_is_public:
+        if effect == "Allow" and _principal_is_public(principal):
             public_policy = True
             break
 
@@ -142,7 +186,7 @@ def _s3_bucket(bucket):
 def _iam_policy(policy):
     """Normalize an IAM policy."""
 
-    document = policy.get("PolicyDocument") or policy
+    document = _policy_document(policy.get("PolicyDocument") or policy)
     statements = _as_list(document.get("Statement"))
 
     allows_full_admin = False
@@ -301,6 +345,17 @@ def normalize(raw):
 
     if not isinstance(raw, dict):
         raise ValueError("Environment data must be a JSON object.")
+
+    # A misspelled section name would otherwise be ignored silently and
+    # the scan would look clean, so warn about anything we do not read.
+    unknown_keys = sorted(set(raw) - KNOWN_KEYS)
+
+    if unknown_keys:
+        warnings.warn(
+            f"Ignoring unknown top-level key(s): {', '.join(unknown_keys)}. "
+            f"Expected: {', '.join(sorted(KNOWN_KEYS))}.",
+            stacklevel=2,
+        )
 
     resources = []
 

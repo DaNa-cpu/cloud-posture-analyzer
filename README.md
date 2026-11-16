@@ -63,7 +63,8 @@ source .venv/bin/activate
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt        # to run the analyzer
+pip install -r requirements-dev.txt    # to also run the tests
 ```
 
 ## Usage
@@ -139,7 +140,18 @@ Risk Score = Severity × Exposure × Criticality
 
 Each factor is an integer from 1 to 5.
 
-The maximum possible score is 125.
+Severity and exposure are defined per rule. Criticality comes from the `criticality` tag on each resource:
+
+| Tag value | Criticality |
+|---|---:|
+| `low` | 1 |
+| `medium` | 3 |
+| `high` | 4 |
+| `critical` | 5 |
+
+A missing or unrecognized tag gets the default value of 3, the same as `medium`.
+
+The maximum possible score is 125. The same rule scores differently depending on the resource: in the demo, the public-bucket rule (S3-001) scores 125 for a bucket tagged `critical` and 25 for one tagged `low`.
 
 Risk labels:
 
@@ -168,6 +180,9 @@ They are **relevant control mappings**, not proof of compliance or non-complianc
 - The current input is configuration data supplied as JSON fixtures.
 - The project does not currently collect live AWS configuration through boto3.
 - The analyzer evaluates only the security rules implemented in the project.
+- S3 public access is decided from the ACL, the bucket policy and the Block Public Access settings together. Policy `Condition` blocks are not evaluated, so a statement allowing `Principal: "*"` that is restricted by a condition (for example, a source IP range) is still reported as public.
+- IAM analysis only looks for the full-administrator pattern (`Action: "*"` on `Resource: "*"`). Service wildcards such as `s3:*` are not reported.
+- Fields that are missing from the input are treated as unknown, not insecure, so an incomplete export does not produce false findings.
 - It does not perform penetration testing or exploit validation.
 - It does not scan application source code, container images, or running workloads.
 - Its risk score is a prioritization mechanism, not a formal compliance or vulnerability rating.
@@ -205,6 +220,7 @@ cloud-posture-analyzer/
 │   ├── engine.py
 │   ├── models.py
 │   ├── reports.py
+│   ├── risk.py
 │   ├── rules.py
 │   └── templates/
 │       └── report.html.j2
@@ -214,8 +230,8 @@ cloud-posture-analyzer/
 ├── mappings/
 │   └── controls.yaml
 ├── tests/
-├── risk.py
 ├── scan.py
 ├── requirements.txt
+├── requirements-dev.txt
 └── README.md
 ```

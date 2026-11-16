@@ -1,5 +1,5 @@
 from cloud_analyzer.rules import RULES
-from cloud_analyzer.compliance import CONTROLS, for_rule
+from cloud_analyzer.compliance import for_rule, load_controls
 
 
 def test_every_rule_has_compliance_mapping():
@@ -13,8 +13,8 @@ def test_every_rule_has_compliance_mapping():
 
 
 def test_every_mapped_control_exists_in_frameworks():
-    frameworks = CONTROLS["frameworks"]
-    mappings = CONTROLS["rules"]
+    frameworks = load_controls()["frameworks"]
+    mappings = load_controls()["rules"]
 
     for rule_id, mapping in mappings.items():
         assert rule_id in [rule.id for rule in RULES]
