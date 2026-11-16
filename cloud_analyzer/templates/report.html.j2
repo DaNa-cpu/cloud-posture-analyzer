@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Posture Analyzer Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 32px;
+            background: #f4f6f8;
+            color: #20242a;
+        }
+
+        h1 { margin-bottom: 8px; }
+
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 130px;
+            box-shadow: 0 1px 4px #0002;
+        }
+
+        .number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        th { background: #e9edf2; }
+
+        .Critical { color: #b00020; font-weight: bold; }
+        .High { color: #d35400; font-weight: bold; }
+        .Medium { color: #9a7400; font-weight: bold; }
+        .Low { color: #287a45; font-weight: bold; }
+
+        .muted { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Cloud Posture Analyzer</h1>
+    <p class="muted">Security scan report</p>
+
+    <section class="cards">
+        <div class="card">
+            <div>Total findings</div>
+            <div class="number">{{ summary.total_findings }}</div>
+        </div>
+
+        <div class="card">
+            <div>Critical</div>
+            <div class="number">{{ summary.by_label.Critical }}</div>
+        </div>
+
+        <div class="card">
+            <div>High</div>
+            <div class="number">{{ summary.by_label.High }}</div>
+        </div>
+
+        <div class="card">
+            <div>Medium</div>
+            <div class="number">{{ summary.by_label.Medium }}</div>
+        </div>
+
+        <div class="card">
+            <div>Low</div>
+            <div class="number">{{ summary.by_label.Low }}</div>
+        </div>
+
+        <div class="card">
+            <div>Maximum risk</div>
+            <div class="number">{{ summary.max_risk }}</div>
+        </div>
+    </section>
+
+    <h2>Findings</h2>
+
+    {% if findings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Risk</th>
+                <th>Rule</th>
+                <th>Resource</th>
+                <th>Evidence</th>
+                <th>Remediation</th>
+                <th>Controls</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for finding in findings %}
+            <tr>
+                <td>
+                    <span class="{{ finding.risk_label }}">
+                        {{ finding.risk_label }}
+                    </span>
+                    <br>
+                    {{ finding.risk_score }}
+                </td>
+                <td>{{ finding.rule_id }} - {{ finding.title }}</td>
+                <td>{{ finding.resource_name }}</td>
+                <td>{{ finding.evidence }}</td>
+                <td>{{ finding.remediation }}</td>
+                <td>
+                    <strong>ISO 27001:</strong>
+                    {{ finding.iso27001 | join(", ") }}
+                    <br>
+                    <strong>SOC 2:</strong>
+                    {{ finding.soc2 | join(", ") }}
+                    <br>
+                    {{ finding.control_rationale }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No security findings detected.</p>
+    {% endif %}
+</body>
+</html>

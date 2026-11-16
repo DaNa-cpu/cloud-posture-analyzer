@@ -1,8 +1,10 @@
-
 import argparse
 import sys
+import io
 from pathlib import Path
+from contextlib import redirect_stdout
 
+from cloud_analyzer.reports import render_json, render_html
 from cloud_analyzer.adapter import load_environment
 from cloud_analyzer.engine import run_scan
 
@@ -42,6 +44,17 @@ def main():
         default="none",
         help="Exit with code 1 if a finding reaches this risk level.",
     )
+    parser.add_argument(
+        "--format",
+        choices=["text", "json", "html"],
+        default=None,
+        help="Output format: text, json or html.",
+    )
+
+    parser.add_argument(
+        "--output",
+        help="Write the report to this file instead of stdout.",
+    )
 
     input_group = parser.add_mutually_exclusive_group()
 
@@ -58,6 +71,13 @@ def main():
     )
 
     args = parser.parse_args()
+
+    output_format = args.format or ("html" if args.demo else "text")
+
+    output_path = args.output
+
+    if args.demo and output_path is None:
+        output_path = PROJECT_ROOT / "reports" / "report.html"
 
     if args.demo:
         input_path = DEMO_FILE
@@ -79,7 +99,40 @@ def main():
         )
         return 2
 
-    display_findings(findings)
+    if output_format == "text":
+        if output_path:
+            buffer = io.StringIO()
+
+            with redirect_stdout(buffer):
+                display_findings(findings)
+
+            destination = Path(output_path)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(buffer.getvalue(), encoding="utf-8")
+        else:
+            display_findings(findings)
+
+    elif output_format == "json":
+        report = render_json(findings)
+
+        if output_path:
+            destination = Path(output_path)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(report, encoding="utf-8")
+        else:
+            print(report)
+
+    elif output_format == "html":
+        report = render_html(findings)
+
+        if not output_path:
+            output_path = PROJECT_ROOT / "reports" / "report.html"
+
+        destination = Path(output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(report, encoding="utf-8")
+
+        print(f"HTML report written to: {destination}")
 
     if args.fail_on != "none":
         severity_order = {
