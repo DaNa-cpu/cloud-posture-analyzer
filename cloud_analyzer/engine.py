@@ -1,7 +1,7 @@
 from cloud_analyzer.models import Finding, Resource, Rule
 from cloud_analyzer.compliance import for_rule
 from cloud_analyzer.rules import RULES
-from risk import risk_score, risk_label
+from cloud_analyzer.risk import risk_score, risk_label
 
 def run_scan(
     resources: list[Resource],
