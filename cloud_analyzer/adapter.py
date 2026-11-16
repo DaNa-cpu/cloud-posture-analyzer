@@ -9,7 +9,12 @@ from cloud_analyzer.models import (
     SECURITY_GROUP,
     ACCOUNT,
 )
-
+CRITICALITY_MAP = {
+    "low": 1,
+    "medium": 2,
+    "high": 4,
+    "critical": 5,
+}
 
 def _as_list(value):
     """Convert a value into a list. None becomes an empty list."""
@@ -30,7 +35,7 @@ def _tags(tags):
         value = tag.get("Value")
 
         if key is not None:
-            result[key] = value
+            result[str(key).lower()] = value
 
     return result
 
@@ -38,15 +43,7 @@ def _tags(tags):
 def _criticality(tags):
     """Convert the criticality tag into a numeric score."""
     value = str(tags.get("criticality", "medium")).lower()
-
-    levels = {
-        "low": 1,
-        "medium": 3,
-        "high": 4,
-        "critical": 5,
-    }
-
-    return levels.get(value, 3)
+    return CRITICALITY_MAP.get(value, 3)
 
 
 def _s3_bucket(bucket):
@@ -255,6 +252,7 @@ def _security_group(group):
     )
 
 
+
 def _account(raw):
     """Normalize AWS account and CloudTrail information."""
 
@@ -290,12 +288,13 @@ def _account(raw):
             "root_mfa_enabled": root_mfa_enabled,
             "cloudtrail_trails": (
                 cloudtrail_data
-                if "cloudtrail_trails" in raw
+                if "cloud_trails" in raw
                 else None
             ),
         },
         criticality=5,
     )
+
 
 
 def normalize(raw):
@@ -322,7 +321,7 @@ def normalize(raw):
             resources.append(_security_group(group))
 
     # Add an Account resource if account data is available.
-    if "account_summary" in raw or "cloudtrail_trails" in raw:
+    if "account_summary" in raw or "cloud_trails" in raw:
         resources.append(_account(raw))
 
     return resources

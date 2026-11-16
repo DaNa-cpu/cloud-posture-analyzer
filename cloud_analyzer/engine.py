@@ -1,30 +1,36 @@
-
 from cloud_analyzer.models import Finding, Resource, Rule
+from cloud_analyzer.compliance import for_rule
 from cloud_analyzer.rules import RULES
-
+from risk import risk_score, risk_label
 
 def run_scan(
     resources: list[Resource],
     rules: list[Rule] = RULES,
 ) -> list[Finding]:
-    """
-    Evaluate security rules against normalized resources.
+    """Evaluate security rules against normalized resources."""
 
-    Returns a list of findings sorted deterministically.
-    """
     findings = []
 
     for resource in resources:
         for rule in rules:
-            # Only evaluate rules that match the resource type.
+
             if rule.resource_type != resource.type:
                 continue
 
             evidence = rule.evaluate(resource)
 
-            # None means the resource passed this rule.
             if evidence is None:
                 continue
+
+            score = risk_score(
+                rule.severity,
+                rule.exposure,
+                resource.criticality
+            )
+            
+            label = risk_label(score)
+
+            compliance = for_rule(rule.id)
 
             finding = Finding(
                 rule_id=rule.id,
@@ -35,17 +41,21 @@ def run_scan(
                 severity=rule.severity,
                 exposure=rule.exposure,
                 criticality=resource.criticality,
-                risk_score=0,
-                risk_label="",
+                risk_score=score,
+                risk_label=label,
                 evidence=evidence,
                 description=rule.description,
                 remediation=rule.remediation,
                 source=resource.source,
+                iso27001=compliance["iso27001"],
+                soc2=compliance["soc2"],
+                control_rationale=compliance["rationale"],
             )
 
             findings.append(finding)
 
-    # Sort by risk score (descending), rule ID, and resource name.
+    # Sortare deterministă:
+    # risc descrescător, rule_id, numele resursei.
     findings.sort(
         key=lambda finding: (
             -finding.risk_score,

@@ -1,6 +1,5 @@
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -24,18 +23,24 @@ def display_findings(findings):
     for index, finding in enumerate(findings, start=1):
         print("=" * 70)
         print(f"Finding #{index}")
-        print(f"Rule:         {finding.rule_id} - {finding.title}")
-        print(f"Resource:     {finding.resource_name}")
-        print(f"Resource ID:  {finding.resource_id}")
-        print(f"Type:         {finding.resource_type}")
-        print(f"Evidence:     {finding.evidence}")
-        print(f"Remediation:  {finding.remediation}")
+        print(f"Rule:        {finding.rule_id} - {finding.title}")
+        print(f"Resource:    {finding.resource_name}")
+        print(f"Resource ID: {finding.resource_id}")
+        print(f"Type:        {finding.resource_type}")
+        print(f"Evidence:    {finding.evidence}")
+        print(f"Remediation: {finding.remediation}")
         print("=" * 70)
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Analyze cloud resources for security misconfigurations."
+    )
+    parser.add_argument(
+        "--fail-on",
+        choices=["none", "low", "medium", "high", "critical"],
+        default="none",
+        help="Exit with code 1 if a finding reaches this risk level.",
     )
 
     input_group = parser.add_mutually_exclusive_group()
@@ -49,7 +54,7 @@ def main():
     input_group.add_argument(
         "--demo",
         action="store_true",
-        help="Run the scanner against the sample environment.",
+        help="Run scanner against sample environment.",
     )
 
     args = parser.parse_args()
@@ -59,17 +64,38 @@ def main():
     elif args.input:
         input_path = Path(args.input)
     else:
-        parser.error("Provide an input file with --input or use --demo.")
+        parser.error(
+            "Provide an input file with --input or use --demo."
+        )
 
     try:
         resources = load_environment(input_path)
         findings = run_scan(resources)
 
-    except (OSError, json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
-        print(f"Error: Could not load or analyze input: {error}", file=sys.stderr)
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        print(
+            f"Error: Could not load or analyze input: {error}",
+            file=sys.stderr,
+        )
         return 2
 
     display_findings(findings)
+
+    if args.fail_on != "none":
+        severity_order = {
+            "low": 1,
+            "medium": 2,
+            "high": 3,
+            "critical": 4,
+        }
+
+        threshold = severity_order[args.fail_on]
+
+        if any(
+            severity_order[finding.risk_label.lower()] >= threshold
+            for finding in findings
+        ):
+            return 1
 
     return 0
 
